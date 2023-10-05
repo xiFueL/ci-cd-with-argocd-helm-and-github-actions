@@ -1,0 +1,22 @@
+---
+image_pullPolicy: IfNotPresent
+image_tag: latest
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+serviceAccount_create: true
+serviceAccount_annotations: {}
+serviceAccount_name: ""
+service_type: ClusterIP
+service_port: 5000
+ingress_enabled: true
+ingress_className: ""
+ingress_host: flask.144.126.246.47.nip.io
+ingress_paths:
+  - path: /tasks
+    pathType: Prefix
+ingress_tls: []
+autoscaling_enabled: true
+autoscaling_minReplicas: 1
+autoscaling_maxReplicas: 20
+autoscaling_targetCPUUtilizationPercentage: 80

@@ -1,0 +1,42 @@
+#jinja2: trim_blocks:False
+{# We don't need to define the replicaCount variable if autoscaling is enabled #}
+{% if not autoscaling_enabled %}
+replicaCount: {{ replicaCount | default(1) }}
+{% endif %}
+image:
+  repository: {{ user_name }}/{{ repository_name }}
+  pullPolicy: {{ image_pullPolicy | default('IfNotPresent') }}
+  tag: "{{ image_tag | default('latest') }}"
+imagePullSecrets: {{ imagePullSecrets | default([]) }}
+nameOverride: "{{ nameOverride | default('') }}"
+fullnameOverride: "{{ fullnameOverride | default('') }}"
+serviceAccount:
+  create: {{ serviceAccount_create | default(true) }}
+  annotations: {{ serviceAccount_annotations | default({}) }}
+  name: "{{ serviceAccount_name | default('') }}"
+service:
+  type: {{ service_type | default('ClusterIP') }}
+  port: {{ service_port | default(5000) }}
+ingress:
+  enabled: {{ ingress_enabled | default(true) }}
+  className: "{{ ingress_className | default('') }}"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: {{ ingress_host | default('') }}
+      paths:       
+      {%- for item in ingress_paths %}
+        - path: {{ item.path }}
+          pathType: {{ item.pathType }}
+      {%- endfor %}
+    {%- if ingress_tls %}
+    tls: {{ ingress_tls }}
+    {%- endif %}
+{# if autoscaling is enabled, we need to define the autoscaling variables #}
+{% if autoscaling_enabled %}
+autoscaling:
+  enabled: {{ autoscaling_enabled | default(false) }}
+  minReplicas: {{ autoscaling_minReplicas | default(1) }}
+  maxReplicas: {{ autoscaling_maxReplicas | default(100) }}
+  targetCPUUtilizationPercentage: {{ autoscaling_targetCPUUtilizationPercentage | default(80) }}
+{% endif %}

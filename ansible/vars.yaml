@@ -1,0 +1,7 @@
+---
+user_name: xiFueL
+repository_name: ci-cd-with-argocd-helm-and-github-actions
+repository_description: A Helm chart for Kubernetes!
+# use different versions from the previous one to trigger a new Helm release
+chart_version: 0.2.12
+app_version: 1.16.11
