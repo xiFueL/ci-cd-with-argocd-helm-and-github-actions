@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Uses a predefined Helm function to get a full name composed of the release name and the chart name
+  name: {{ include "cicd-flask.fullname" . }}
+
+  labels:
+    # Inserts labels defined in the "cicd-flask.labels" template
+    {{- include "cicd-flask.labels" . | nindent 4 }}
+spec:
+  # Checks if autoscaling is not enabled in the values file
+  {{- if not .Values.autoscaling.enabled }}
+  # Sets the replica count based on the values file
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      # Inserts selector labels defined in the "cicd-flask.selectorLabels" template
+      {{- include "cicd-flask.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      # Checks if podAnnotations are provided in the values file
+      {{- with .Values.podAnnotations }}
+      annotations:
+        # Converts the podAnnotations to YAML
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        # Inserts selector labels defined in the "cicd-flask.selectorLabels" template
+        {{- include "cicd-flask.selectorLabels" . | nindent 8 }}
+    spec:
+      # Checks if imagePullSecrets are provided in the values file
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        # Converts the imagePullSecrets to YAML
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Uses a predefined Helm function to get the service account name
+      serviceAccountName: {{ include "cicd-flask.serviceAccountName" . }}
+      securityContext:
+        # Converts the podSecurityContext from the values file to YAML
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            # Converts the securityContext from the values file to YAML
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /tasks
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /tasks
+              port: http
+          resources:
+            # Converts the resources section from the values file to YAML
+            {{- toYaml .Values.resources | nindent 12 }}
+
+      # Checks if nodeSelector is provided in the values file
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        # Converts the nodeSelector to YAML
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # Checks if affinity is provided in the values file
+      {{- with .Values.affinity }}
+      affinity:
+        # Converts the affinity to YAML
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # Checks if tolerations are provided in the values file
+      {{- with .Values.tolerations }}
+      tolerations:
+        # Converts the tolerations to YAML
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
